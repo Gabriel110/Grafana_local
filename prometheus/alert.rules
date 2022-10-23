@@ -1,0 +1,15 @@
+groups:
+- name: ops-local-api
+  rules:
+  - alert: 'QUEBRA DE SLO'
+    expr: (histogram_quantile(0.90, sum(rate(http_server_requests_seconds_bucket{job="app-local",uri!="/actuator/prometheus"}[1m])) by (le))) >= 0.5
+    for: 1m
+    labels:
+      app: 'api-local'
+      severity: 'critical'
+      group: 'ops-local-api'
+      env: 'production'
+    annotations:
+      title: 'QUEBRA DE SLO'
+      summary: '90% das requisições estão sendo atendidas a 500ms ou mais.'
+      description: 'API local esta quebrando o SLO, 90% das requisições estão sendo atendidas em 500ms ou mais no último minuto.'

@@ -1,0 +1,50 @@
+version: '3'
+networks:
+  monit:
+
+services:
+  prometheus-local-api:
+    image: prom/prometheus:latest
+    container_name: prometheus-local-api
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert.rules:/etc/prometheus/alert.rules
+      - ./prometheus/prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - 9090:9090
+    networks:
+      - monit
+  
+  alertmanager-local-api: 
+    image: prom/alertmanager
+    container_name: alertmanager-local-api
+    volumes: 
+      - ./alertmanager:/etc/alertmanager/:ro
+    ports: 
+      - 9093:9093
+    command: 
+      - --config.file=/etc/alertmanager/alertmanager.yml
+    networks:
+      - monit
+    depends_on:
+      - prometheus-local-api
+
+  grafana-local-api:
+    image: grafana/grafana:7.4.2
+    container_name: grafana-local-api
+    volumes:
+      - ./grafana:/var/lib/grafana
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    networks:
+      - monit
+    depends_on:
+      - alertmanager-local-api

@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 5s
+
+rule_files:
+  - alert.rules
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager-local-api:9093
+
+scrape_configs:
+
+  - job_name: prometheus-local-api
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets:
+          - prometheus-local-api:9090
+
+  - job_name: app-local-api
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [docker.for.win.localhost:3000]
